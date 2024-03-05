@@ -124,9 +124,10 @@
 
 ; operatorul care extrage prima ramură a unui ST
 ; first-branch : ST -> (Label, ST)
-(define (first-branch st) 
+(define (first-branch st)
   (if (st-empty? st)
-    (error "first-branch on empty ST")
+    ; (error "first-branch on empty ST")
+    "empty"
     (car st)
   )
 )
@@ -137,7 +138,8 @@
 ; între o etichetă și un ST"
 (define (other-branches st)
   (if (st-empty? st)
-    (error "other-branches on empty ST")
+    ; (error "other-branches on empty ST")
+    "empty"
     (cdr st)
   )
 )
@@ -173,12 +175,12 @@
               [label (get-branch-label branch)]) ;get the label of the first branch
          (if (and (not (null? label)) ; if label is not empty
                   (char=? ch (car label))) ; if the first char matches
-             branch ; ret branch
-             (search (cdr branches))
+            branch ; ret branch
+            (search (cdr branches))
         )
        )]
     )
   ) ; else search in the rest of the branches
-  
+
   (search st)
 )

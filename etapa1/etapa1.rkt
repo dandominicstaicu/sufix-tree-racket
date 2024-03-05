@@ -13,18 +13,18 @@
 ; => '((#\w #\h) (#\y) (#\e #\n))
 ; Folosiți recursivitate pe coadă.
 (define (longest-common-prefix w1 w2)
-  (define (helper w1 w2 common)
+  (define (find-longest-common-prefix w1 w2 common)
     (cond
       [(or (null? w1) (null? w2) (not (char=? (car w1) (car w2))))
-      (list (reverse common) w1 w2)
+       (list (reverse common) w1 w2)
       ]
       [else
-        (helper (cdr w1) (cdr w2) (cons (car w1) common))
+        (find-longest-common-prefix (cdr w1) (cdr w2) (cons (car w1) common))
       ]
     )
   )
 
-  (helper w1 w2 '())
+  (find-longest-common-prefix w1 w2 '())
 )
 
 
@@ -92,7 +92,42 @@
 ; Obs: deși exemplele folosesc stringuri pentru claritate, vă
 ; reamintim că în realitate lucrăm cu liste de caractere.
 (define (match-pattern-with-label st pattern)
-  'your-code-here)
+  (define (common-prefix-length lst1 lst2)
+    (define (helper l1 l2 count)
+      (if (or (null? l1)
+              (null? l2)
+              (not (char=? (car l1) (car l2)))) ; not match
+          count ; return the count of matching characters
+          (helper (cdr l1) (cdr l2) (+ 1 count))  ; continue with the rest of the lists
+      )
+    )
+
+    (helper lst1 lst2 0)
+  )
+
+
+  (let ((branch (get-ch-branch st (car pattern))))
+    (if (not branch) ; check if no branch starts with the pattern's first character
+        (list #f '()) ; pattern not found in the text
+        (let* ((label (get-branch-label branch))
+               (subtree (get-branch-subtree branch))
+               (common-prefix-length (common-prefix-length pattern label)))
+          (cond
+            ((equal? common-prefix-length (length pattern))
+             #t) ; fully matches the start of the label
+            ((equal? common-prefix-length (length label))
+             (if (= common-prefix-length 0)
+                 (list #f '()) ; no common prefix
+                 (list label (drop pattern common-prefix-length) subtree))) ; partial match, need to search deeper
+            (else
+             (list #f (take pattern common-prefix-length)) ; partial or no match, return common prefix
+            )
+          )
+        )
+    )
+  )
+)
+
 
 
 ; TODO 5
@@ -100,4 +135,17 @@
 ; arbore de sufixe și un șablon și întoarce true dacă șablonul
 ; apare în arbore, respectiv false în caz contrar.
 (define (st-has-pattern? st pattern)
-  'your-code-here)
+  (define (search-in-subtree subtree pattern)
+    (cond
+      [(null? pattern) #t] ; if pattern is empty, it's found
+      [(null? subtree) #f] ; if subtree is empty, pattern not found
+      [else
+       (let ((match-result (match-pattern-with-label subtree pattern)))
+         (cond
+           [(eq? match-result #t) #t] ; fully matched within a label
+           [(and (list? match-result) (eq? (first match-result) #f)) #f] ; does not match label
+           [(list? match-result) 
+            (search-in-subtree (third match-result) (second match-result))] ; partial match, continue in the subtree
+           [else #f]))]))
+  (search-in-subtree st pattern))
+  
