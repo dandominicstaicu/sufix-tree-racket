@@ -12,8 +12,7 @@
 ; (longest-common-prefix '(#\w #\h #\y) '(#\w #\h #\e #\n))
 ; => '((#\w #\h) (#\y) (#\e #\n))
 ; Folosiți recursivitate pe coadă.
-(define (longest-common-prefix w1 w2)
-  (define (find-longest-common-prefix w1 w2 common)
+(define (find-longest-common-prefix w1 w2 common)
     (cond
       [(or (null? w1) (null? w2) (not (char=? (car w1) (car w2))))
        (list (reverse common) w1 w2)
@@ -24,6 +23,7 @@
     )
   )
 
+(define (longest-common-prefix w1 w2)
   (find-longest-common-prefix w1 w2 '())
 )
 
