@@ -104,7 +104,6 @@
 ;; arborilor de sufixe definiți anterior.
 
 
-; TODO 1
 ; Definiți următorii constructori și operatori ai structurii
 ; de date Arbore de Sufixe (pe viitor vom prescurta numele 
 ; acestei structuri de date ca ST, de la denumirea în engleză).

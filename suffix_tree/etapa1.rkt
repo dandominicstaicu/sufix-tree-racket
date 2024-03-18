@@ -3,7 +3,6 @@
 
 (provide (all-defined-out))
 
-; TODO 2
 ; Implementați o funcție care primește două cuvinte (liste
 ; de caractere) w1 și w2 și calculează cel mai lung prefix
 ; comun al acestora, împreună cu restul celor două cuvinte
@@ -28,7 +27,6 @@
 )
 
 
-; TODO 3
 ; Implementați recursiv o funcție care primește o listă nevidă 
 ; de cuvinte care încep cu același caracter și calculează cel 
 ; mai lung prefix comun al acestora.
@@ -72,7 +70,7 @@
 ;;   sufixelor din subarborele său)
 
 
-; TODO 4
+
 ; Implementați funcția match-pattern-with-label care primește un
 ; arbore de sufixe și un șablon nevid și realizează un singur pas 
 ; din procesul prezentat mai sus - identifică ramura arborelui a
@@ -130,7 +128,6 @@
 
 
 
-; TODO 5
 ; Implementați funcția st-has-pattern? care primește un
 ; arbore de sufixe și un șablon și întoarce true dacă șablonul
 ; apare în arbore, respectiv false în caz contrar.

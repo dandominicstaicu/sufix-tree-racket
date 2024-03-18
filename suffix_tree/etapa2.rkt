@@ -30,7 +30,6 @@
 ;;      pentru noile sufixe
 
 
-; TODO 1
 ; Implementați recursiv o funcție care primește un text (listă 
 ; de caractere) și determină lista tuturor sufixelor acestuia
 ; (de la cel mai lung la cel mai scurt).
@@ -54,7 +53,6 @@
 )
 
 
-; TODO 2
 ; Implementați o funcție care primește o listă de cuvinte 
 ; și un caracter ch și întoarce acele cuvinte din listă care 
 ; încep cu caracterul ch.
@@ -69,7 +67,6 @@
   )
 )
 
-; TODO 3
 ; Implementați o funcție care primește o listă nevidă de sufixe 
 ; care încep cu același caracter și calculează perechea
 ; (etichetă AST pentru aceste sufixe, lista noilor sufixe).
@@ -95,9 +92,20 @@
 ; comun, iar noile sufixe se obțin din cele vechi prin eliminarea 
 ; acestui prefix.
 ; Nu folosiți recursivitate explicită.
+; (define (cst-func suffixes)
+;   'your-code-here)
+
 (define (cst-func suffixes)
-  'your-code-here)
- 
+ (let* ((lcp (longest-common-prefix-of-list suffixes))  ; use the implemented function to find the LCP
+        (label lcp)  ; the label is the LCP itself.
+        (new-suffixes (map (lambda (suffix)
+                             (drop suffix (length lcp)))  ; remove the LCP from each suffix
+                           suffixes)
+        )
+       )
+   (cons label new-suffixes)  ; return the pair of the label and new suffixes
+  )
+)
 
 
 ; TODO 5
