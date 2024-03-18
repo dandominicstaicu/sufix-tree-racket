@@ -84,7 +84,6 @@
 )
 
 
-; TODO 4
 ; Implementați o funcție care primește o listă nevidă de sufixe 
 ; care încep cu același caracter și calculează perechea
 ; (etichetă CST pentru aceste sufixe, lista noilor sufixe).
@@ -92,9 +91,6 @@
 ; comun, iar noile sufixe se obțin din cele vechi prin eliminarea 
 ; acestui prefix.
 ; Nu folosiți recursivitate explicită.
-; (define (cst-func suffixes)
-;   'your-code-here)
-
 (define (cst-func suffixes)
  (let* ((lcp (longest-common-prefix-of-list suffixes))  ; use the implemented function to find the LCP
         (label lcp)  ; the label is the LCP itself.
@@ -108,7 +104,6 @@
 )
 
 
-; TODO 5
 ; Implementați funcția suffixes->st care construiește un
 ; arbore de sufixe pe baza unei liste de sufixe, a unui 
 ; alfabet (listă de caractere care include toate caracterele
@@ -121,7 +116,23 @@
 ; pentru celelalte prelucrări (pașii 2 și 3) trebuie să
 ; folosiți funcționale.
 (define (suffixes->st labeling-func suffixes alphabet)
-  'your-code-here)
+  (if (null? alphabet)
+      '()  ; If the alphabet is empty, return an empty list
+      (foldr (lambda (ch acc)  ; Use foldr to iterate over the alphabet and build the tree
+               (let* ((ch-suffixes (get-ch-words suffixes ch))  ; Get all suffixes starting with ch
+                      (label-and-suffixes (and (not (null? ch-suffixes))  ; Proceed if there are such suffixes
+                                             (labeling-func ch-suffixes))))  ; Apply labeling function
+                 (if label-and-suffixes  ; If labeling function returned a non-empty result
+                     (let* ((label (car label-and-suffixes))  ; Extract label
+                            (new-suffixes (cdr label-and-suffixes))  ; Extract new suffixes for subtree
+                            (subtree (if (null? new-suffixes)  ; If no new suffixes, subtree is empty
+                                         '()
+                                         (suffixes->st labeling-func new-suffixes alphabet))))  ; Recursive call for subtree
+                       (cons (cons label subtree) acc))  ; Add the branch to the accumulator
+                     acc)))  ; If no label-and-suffixes, just pass the accumulator unchanged
+             '()  ; Initial accumulator is an empty list
+             alphabet)))  ; Fold over the alphabet
+
 
 
 ; TODO 6
@@ -146,17 +157,26 @@
 ; mai jos prin aplicație parțială a funcției text->st.
 ; Obs: Din acest motiv, checker-ul testează doar funcțiile
 ; text->ast și text->cst.
-(define text->st
-  'your-code-here)
+
+(define (text->st labeling-func)
+  (lambda (text)
+    (let* ((text-with-end-marker (append text '(#\$)))  ; Add end marker as a character correctly
+           (suffixes (get-suffixes text-with-end-marker))
+           (alphabet (sort (remove-duplicates text-with-end-marker) char<?)))  ; Sort and remove duplicates
+      (suffixes->st labeling-func suffixes alphabet))))
 
 ; b) Din funcția text->st derivați funcția text->ast care
 ; primește un text (listă de caractere) și întoarce AST-ul
 ; asociat textului.
-(define text->ast
-  'your-code-here)
+; (define text->ast
+;   'your-code-here)
+(define text->ast (text->st ast-func))
+
 
 ; c) Din funcția text->st derivați funcția text->cst care
 ; primește un text (listă de caractere) și întoarce CST-ul
 ; asociat textului.
-(define text->cst
-  'your-code-here)
+; (define text->cst
+;   'your-code-here)
+(define text->cst (text->st cst-func))
+
