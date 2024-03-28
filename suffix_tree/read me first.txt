@@ -1,7 +1,5 @@
-- Întâi veți rezolva sarcinile din fișierul suffix-tree.rkt, apoi pe cele din fișierul etapa1.rkt.
+- Observați liniile de "require" de la începutul fișierului etapa3.rkt și aduceți rezolvările etapelor 1 și 2 în același folder în care rezolvați etapa 3, pentru a beneficia de funcțiile implementate anterior.
 
-- Pentru testare, rulați codul din checker.rkt. Nu este permis să modificați acest fișier.
+- Folosiți let-uri pentru a evita aplicarea repetată a aceleiași funcții pe aceleași argumente. Aceasta nu este o restricție asupra unei funcții anume, ci o restricție generală asupra rezolvării. Dacă în timpul prezentării asistentul observă abateri repetate de la această regulă, se va aplica o depunctare de 20p.
 
-- Fișierul pretty-print.rkt vă permite să vizualizați arbori de sufixe de dimensiune mică, odată ce ați implementat funcțiile din suffix-tree.rkt. Puteți ignora acest fișier, dacă doriți. El vă este furnizat doar pentru a vă ajuta să înțelegeți structura arborilor de sufixe (și eventual ca unealtă de debug).
-
-- Folosiți let* pentru un cod mai lizibil și mai eficient (găsiți explicații despre let* în fișierul let-star.txt).
+- Pe vmchecker veți încărca o arhivă .zip conținând fișierele suffix-tree.rkt, etapa1.rkt, etapa2.rkt și etapa3.rkt.

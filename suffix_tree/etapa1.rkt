@@ -89,8 +89,7 @@
 ;   (ex2: (false, "") pentru etichetă negăsită)
 ; Obs: deși exemplele folosesc stringuri pentru claritate, vă
 ; reamintim că în realitate lucrăm cu liste de caractere.
-(define (match-pattern-with-label st pattern)
-  (define (common-prefix-length lst1 lst2)
+(define (common-prefix-length lst1 lst2)
     (define (helper l1 l2 count)
       (if (or (null? l1)
               (null? l2)
@@ -103,7 +102,7 @@
     (helper lst1 lst2 0)
   )
 
-
+(define (match-pattern-with-label st pattern)
   (let ((branch (get-ch-branch st (car pattern))))
     (if (not branch) ; check if no branch starts with the pattern's first character
         (list #f '()) ; pattern not found in the text

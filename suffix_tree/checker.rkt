@@ -1,7 +1,6 @@
 #lang racket
 
-(require "suffix-tree.rkt")
-(require "etapa2.rkt")
+(require "etapa3.rkt")
 
 ; ignorați următoarele linii de cod...
 (define show-defaults 999) ; câte exerciții la care s-au întors rezultate default să fie arătate detaliat
@@ -25,212 +24,49 @@
 
 ; Definițiile pentru tema aceasta încep de aici.
 
-; sufixe banana
-(define suff-1
-  '((#\b #\a #\n #\a #\n #\a #\$)
-    (#\a #\n #\a #\n #\a #\$)
-    (#\n #\a #\n #\a #\$)
-    (#\a #\n #\a #\$)
-    (#\n #\a #\$)
-    (#\a #\$)
-    (#\$)))
+; text mai lung
+(define long-text (string->list "In computer science, functional programming is a programming paradigm where programs are constructed by applying and composing functions. It is a declarative programming paradigm in which function definitions are trees of expressions that map values to other values, rather than a sequence of imperative statements which update the running state of the program.
 
-; sufixe agcgacgag
-(define suff-2
-  '((#\a #\g #\c #\g #\a #\c #\g #\a #\g #\$)
-    (#\g #\c #\g #\a #\c #\g #\a #\g #\$)
-    (#\c #\g #\a #\c #\g #\a #\g #\$)
-    (#\g #\a #\c #\g #\a #\g #\$)
-    (#\a #\c #\g #\a #\g #\$)
-    (#\c #\g #\a #\g #\$)
-    (#\g #\a #\g #\$)
-    (#\a #\g #\$)
-    (#\g #\$)
-    (#\$)))
+In functional programming, functions are treated as first-class citizens, meaning that they can be bound to names (including local identifiers), passed as arguments, and returned from other functions, just as any other data type can. This allows programs to be written in a declarative and composable style, where small functions are combined in a modular manner.
 
-; sufixe mississippi
-(define suff-3
-  '((#\m #\i #\s #\s #\i #\s #\s #\i #\p #\p #\i #\$)
-    (#\i #\s #\s #\i #\s #\s #\i #\p #\p #\i #\$)
-    (#\s #\s #\i #\s #\s #\i #\p #\p #\i #\$)
-    (#\s #\i #\s #\s #\i #\p #\p #\i #\$)
-    (#\i #\s #\s #\i #\p #\p #\i #\$)
-    (#\s #\s #\i #\p #\p #\i #\$)
-    (#\s #\i #\p #\p #\i #\$)
-    (#\i #\p #\p #\i #\$)
-    (#\p #\p #\i #\$)
-    (#\p #\i #\$)
-    (#\i #\$)
-    (#\$)))
+Functional programming is sometimes treated as synonymous with purely functional programming, a subset of functional programming which treats all functions as deterministic mathematical functions, or pure functions. When a pure function is called with some given arguments, it will always return the same result, and cannot be affected by any mutable state or other side effects. This is in contrast with impure procedures, common in imperative programming, which can have side effects (such as modifying the program's state or taking input from a user). Proponents of purely functional programming claim that by restricting side effects, programs can have fewer bugs, be easier to debug and test, and be more suited to formal verification.[1][2]
 
-; ST compact pentru "banana".
-(define stree-1c
-  '(((#\$))
-    ((#\a) ((#\$))
-           ((#\n #\a) ((#\$))
-                      ((#\n #\a #\$))))
-    ((#\b #\a #\n #\a #\n #\a #\$))
-    ((#\n #\a) ((#\$))
-               ((#\n #\a #\$)))))
+Functional programming has its roots in academia, evolving from the lambda calculus, a formal system of computation based only on functions. Functional programming has historically been less popular than imperative programming, but many functional languages are seeing use today in industry and education, including Common Lisp, Scheme,[3][4][5][6] Clojure, Wolfram Language,[7][8] Racket,[9] Erlang,[10][11][12] Elixir,[13] OCaml,[14][15] Haskell,[16][17] and F#.[18][19] Functional programming is also key to some languages that have found success in specific domains, like JavaScript in the Web,[20] R in statistics,[21][22] J, K and Q in financial analysis, and XQuery/XSLT for XML.[23][24] Domain-specific declarative languages like SQL and Lex/Yacc use some elements of functional programming, such as not allowing mutable values.[25] In addition, many other programming languages support programming in a functional style or have implemented features from functional programming, such as C++11, C#,[26] Kotlin,[27] Perl,[28] PHP,[29] Python,[30] Go,[31] Rust,[32] Raku,[33] Scala,[34] and Java (since Java 8).[35]"))
 
-; ST atomic pentru "banana".
-(define stree-1a
-  '(((#\a) ((#\n) ((#\a) ((#\n) ((#\a) ((#\$)))) ((#\$)))) ((#\$)))
-    ((#\b) ((#\a) ((#\n) ((#\a) ((#\n) ((#\a) ((#\$))))))))
-    ((#\n) ((#\a) ((#\n) ((#\a) ((#\$)))) ((#\$))))
-    ((#\$))))
+; subșir repetat de lungime 10 în textul lung
+(define res-e '(#\newline #\newline #\F #\u #\n #\c #\t #\i #\o #\n))
 
-; ST compact pentru "agcgacgag".
-(define stree-2c
-  '(((#\c #\g #\a) ((#\c #\g #\a #\g #\$)) ((#\g #\$)))
-    ((#\a) ((#\c #\g #\a #\g #\$)) ((#\g) ((#\c #\g #\a #\c #\g #\a #\g #\$)) ((#\$))))
-    ((#\g) ((#\c #\g #\a #\c #\g #\a #\g #\$)) ((#\a) ((#\c #\g #\a #\g #\$)) ((#\g #\$))) ((#\$)))
-    ((#\$))))
-
-; ST atomic pentru "agcgacgag".
-(define stree-2a
-  '(((#\$))
-    ((#\a) ((#\c) ((#\g) ((#\a) ((#\g) ((#\$)))))) ((#\g) ((#\$)) ((#\c) ((#\g) ((#\a) ((#\c) ((#\g) ((#\a) ((#\g) ((#\$)))))))))))
-    ((#\c) ((#\g) ((#\a) ((#\c) ((#\g) ((#\a) ((#\g) ((#\$)))))) ((#\g) ((#\$))))))
-    ((#\g)
-     ((#\$))
-     ((#\a) ((#\c) ((#\g) ((#\a) ((#\g) ((#\$)))))) ((#\g) ((#\$))))
-     ((#\c) ((#\g) ((#\a) ((#\c) ((#\g) ((#\a) ((#\g) ((#\$))))))))))))
-
-; ST compact pentru "mississippi".
-(define stree-3c
-  '(((#\$))
-    ((#\i) ((#\$)) ((#\p #\p #\i #\$)) ((#\s #\s #\i) ((#\p #\p #\i #\$)) ((#\s #\s #\i #\p #\p #\i #\$))))
-    ((#\m #\i #\s #\s #\i #\s #\s #\i #\p #\p #\i #\$))
-    ((#\p) ((#\i #\$)) ((#\p #\i #\$)))
-    ((#\s) ((#\i) ((#\p #\p #\i #\$)) ((#\s #\s #\i #\p #\p #\i #\$))) ((#\s #\i) ((#\p #\p #\i #\$)) ((#\s #\s #\i #\p #\p #\i #\$)))))
-  )
-
-; ST atomic pentru "mississippi".
-(define stree-3a
-  '(((#\$))
-    ((#\m) ((#\i) ((#\s) ((#\s) ((#\i) ((#\s) ((#\s) ((#\i) ((#\p) ((#\p) ((#\i) ((#\$)))))))))))))
-    ((#\i)
-     ((#\$))
-     ((#\s) ((#\s) ((#\i) ((#\s) ((#\s) ((#\i) ((#\p) ((#\p) ((#\i) ((#\$)))))))) ((#\p) ((#\p) ((#\i) ((#\$))))))))
-     ((#\p) ((#\p) ((#\i) ((#\$))))))
-    ((#\s)
-     ((#\i) ((#\s) ((#\s) ((#\i) ((#\p) ((#\p) ((#\i) ((#\$)))))))) ((#\p) ((#\p) ((#\i) ((#\$))))))
-     ((#\s) ((#\i) ((#\s) ((#\s) ((#\i) ((#\p) ((#\p) ((#\i) ((#\$)))))))) ((#\p) ((#\p) ((#\i) ((#\$))))))))
-    ((#\p) ((#\i) ((#\$))) ((#\p) ((#\i) ((#\$)))))))
+; subșir repetat de lungime 30 în textul lung
+(define res-g '(#\space #\f #\u #\n #\c #\t #\i #\o #\n #\a #\l #\space
+                        #\p #\r #\o #\g #\r #\a #\m #\m #\i #\n #\g #\, #\space
+                        #\s #\u #\c #\h #\space))
 
 
 ; Testele încep de aici.
-(sunt 6 exerciții)
+(sunt 3 exerciții)
 
 (exercițiul 1 : 10 puncte)
-(check-part 'a (/ 1 2) (map (compose get-suffixes string->list) '("what's$" "in$" "a$" "name?$"))  is
-            '(((#\w #\h #\a #\t #\' #\s #\$) (#\h #\a #\t #\' #\s #\$) (#\a #\t #\' #\s #\$) (#\t #\' #\s #\$) (#\' #\s #\$) (#\s #\$) (#\$))
-              ((#\i #\n #\$) (#\n #\$) (#\$))
-              ((#\a #\$) (#\$))
-              ((#\n #\a #\m #\e #\? #\$) (#\a #\m #\e #\? #\$) (#\m #\e #\? #\$) (#\e #\? #\$) (#\? #\$) (#\$))))
-(check-part 'b (/ 1 2) (map (compose get-suffixes string->list) '("nothing,$" "unless$" "name$" "is$" "a$" "free$" "variable.$"))  is
-            '(((#\n #\o #\t #\h #\i #\n #\g #\, #\$)
-               (#\o #\t #\h #\i #\n #\g #\, #\$)
-               (#\t #\h #\i #\n #\g #\, #\$)
-               (#\h #\i #\n #\g #\, #\$)
-               (#\i #\n #\g #\, #\$)
-               (#\n #\g #\, #\$)
-               (#\g #\, #\$)
-               (#\, #\$)
-               (#\$))
-              ((#\u #\n #\l #\e #\s #\s #\$) (#\n #\l #\e #\s #\s #\$) (#\l #\e #\s #\s #\$) (#\e #\s #\s #\$) (#\s #\s #\$) (#\s #\$) (#\$))
-              ((#\n #\a #\m #\e #\$) (#\a #\m #\e #\$) (#\m #\e #\$) (#\e #\$) (#\$))
-              ((#\i #\s #\$) (#\s #\$) (#\$))
-              ((#\a #\$) (#\$))
-              ((#\f #\r #\e #\e #\$) (#\r #\e #\e #\$) (#\e #\e #\$) (#\e #\$) (#\$))
-              ((#\v #\a #\r #\i #\a #\b #\l #\e #\. #\$)
-               (#\a #\r #\i #\a #\b #\l #\e #\. #\$)
-               (#\r #\i #\a #\b #\l #\e #\. #\$)
-               (#\i #\a #\b #\l #\e #\. #\$)
-               (#\a #\b #\l #\e #\. #\$)
-               (#\b #\l #\e #\. #\$)
-               (#\l #\e #\. #\$)
-               (#\e #\. #\$)
-               (#\. #\$)
-               (#\$))))
+(check-part 'a (/ 1 2) (map ((curry substring?) (string->list "banana")) (map string->list '("b" "g" "n" "baa" "banana" "nan" "anab" " na"))) is
+            '(#t #f #t #f #t #t #f #f))
+(check-part 'b (/ 1 2) (map ((curry substring?) (string->list " xabxabxaaxbbxabxabxaaxbb")) (map string->list '("xax" " " "aax" "bba" "x" "abg" " xabxabxaaxbbxabxabx"))) is
+            '(#f #t #t #f #t #f #t))
 
-(exercițiul 2 : 15 puncte)
-(check-part 'a (/ 1 3) (get-ch-words (map string->list '("Lesser" "leather" "never" "weathered" "wetter" "weather" "better")) #\w) is
-            '((#\w #\e #\a #\t #\h #\e #\r #\e #\d) (#\w #\e #\t #\t #\e #\r) (#\w #\e #\a #\t #\h #\e #\r)))
-(check-part 'b (/ 1 3) (get-ch-words (map string->list '("A" "peck" "of" "pickled" "peppers" "Peter" "Piper" "picked.")) #\p) is
-            '((#\p #\e #\c #\k) (#\p #\i #\c #\k #\l #\e #\d) (#\p #\e #\p #\p #\e #\r #\s) (#\p #\i #\c #\k #\e #\d #\.)))
-(check-part 'c (/ 1 3) (map (λ (ch) (get-ch-words (map string->list '("Betty" "Botter" "bought" "some" "butter")) ch)) '(#\B #\u #\s)) is
-            '(((#\B #\e #\t #\t #\y) (#\B #\o #\t #\t #\e #\r)) () ((#\s #\o #\m #\e))))
+(exercițiul 2 : 50 puncte)
+(check-part 'a (/ 1 5) (longest-common-substring (string->list "xabxa") (string->list "babxabxaaxxaba")) is '(#\x #\a #\b #\x #\a))
+(check-part 'b (/ 1 5) (longest-common-substring (string->list "babcxabac") (string->list "babxabxaaxxaba")) is '(#\x #\a #\b #\a))
+(check-part 'c (/ 1 5) (longest-common-substring (string->list "babcxabac") (string->list "babdxabdxadaxxdaba")) is '(#\b #\a #\b))
+(check-part 'd (/ 1 5) (map ((curry longest-common-substring) (string->list "babcxabac")) (map string->list '("ghghghgh" "babcxabac" " babcxabac" "babcxabacx" "xab"))) is
+            '(() (#\b #\a #\b #\c #\x #\a #\b #\a #\c) (#\b #\a #\b #\c #\x #\a #\b #\a #\c) (#\b #\a #\b #\c #\x #\a #\b #\a #\c) (#\x #\a #\b)))
+(check-part 'e (/ 1 5) (longest-common-substring (string->list "banana") (string->list "bandana")) is '(#\b #\a #\n))
 
-(exercițiul 3 : 10 puncte)
-(check-part 'a (/ 1 2) (ast-func (map string->list '("when" "where" "why" "who"))) is
-            '((#\w) (#\h #\e #\n) (#\h #\e #\r #\e) (#\h #\y) (#\h #\o)))
-(check-part 'b (/ 1 2) (ast-func (map string->list '("all" "about" "ants" "as" "a"))) is
-            '((#\a) (#\l #\l) (#\b #\o #\u #\t) (#\n #\t #\s) (#\s) ()))
+(exercițiul 3 : 60 puncte)
+(let ([input-list (string->list "xabxabxaaxbbxabxabxaaxbb")])
+  (check-part 'a (/ 1 6) (repeated-substring-of-given-length input-list 10) is '(#\a #\b #\x #\a #\b #\x #\a #\a #\x #\b))
+  (check-part 'b (/ 1 6) (repeated-substring-of-given-length input-list 11) is '(#\a #\b #\x #\a #\b #\x #\a #\a #\x #\b #\b))
+  (check-part 'c (/ 1 6) (repeated-substring-of-given-length input-list 12) is '(#\x #\a #\b #\x #\a #\b #\x #\a #\a #\x #\b #\b))
+  (check-part 'd (/ 1 6) (repeated-substring-of-given-length input-list 13) is #f))
+(check-part 'e (/ 1 6) (repeated-substring-of-given-length long-text 10) is res-e)
+(check-part 'f (/ 1 6) (repeated-substring-of-given-length long-text 30) is res-g)
 
-(exercițiul 4 : 15 puncte)
-(check-part 'a (/ 1 3) (cst-func (map string->list '("when" "where" "why" "who"))) is
-            '((#\w #\h) (#\e #\n) (#\e #\r #\e) (#\y) (#\o)))
-(check-part 'b (/ 1 3) (cst-func (map string->list '("all" "about" "ants" "as" "a"))) is
-            '((#\a) (#\l #\l) (#\b #\o #\u #\t) (#\n #\t #\s) (#\s) ()))
-(check-part 'c (/ 1 3) (cst-func (map string->list '("sometimes" "something" "somewhere"))) is
-            '((#\s #\o #\m #\e) (#\t #\i #\m #\e #\s) (#\t #\h #\i #\n #\g) (#\w #\h #\e #\r #\e)))
-
-(exercițiul 5 : 40 puncte)
-(check-part 'a (/ 1 8) (suffixes->st ast-func suff-1 (string->list "abn$")) is stree-1a)
-(check-part 'b (/ 1 8) (suffixes->st cst-func suff-1 (string->list "$abn")) is stree-1c)
-(check-part 'c (/ 1 8) (suffixes->st ast-func suff-2 (string->list "$acg")) is stree-2a)
-(check-part 'd (/ 1 8) (suffixes->st cst-func suff-2 (string->list "cag$")) is stree-2c)
-(check-part 'e (/ 1 8) (suffixes->st ast-func suff-3 (string->list "$misp")) is stree-3a)
-(check-part 'f (/ 1 8) (suffixes->st cst-func suff-3 (string->list "$imps")) is stree-3c)
-(check-part 'g (/ 1 8) (suffixes->st ast-func suff-2 (string->list "$abcdefg")) is stree-2a)
-(check-part 'h (/ 1 8) (suffixes->st cst-func suff-3 (string->list "$abcdefghijklmnopqrstuvwxyz")) is stree-3c)
-
-(exercițiul 6 : 30 puncte)
-(when (andmap procedure? (list text->ast text->cst))
-  (check-part 'a (/ 1 6) (text->ast (string->list "banana")) is
-              '(((#\$))
-                ((#\a) ((#\$)) ((#\n) ((#\a) ((#\$)) ((#\n) ((#\a) ((#\$)))))))
-                ((#\b) ((#\a) ((#\n) ((#\a) ((#\n) ((#\a) ((#\$))))))))
-                ((#\n) ((#\a) ((#\$)) ((#\n) ((#\a) ((#\$))))))))
-  (check-part 'b (/ 1 6) (text->cst (string->list "banana")) is stree-1c)
-  (check-part 'c (/ 1 6) (text->ast (string->list "agcgacgag")) is stree-2a)
-  (check-part 'd (/ 1 6) (text->cst (string->list "mississippi")) is stree-3c)
-  (check-part 'e (/ 1 6) (text->ast (string->list "abracadabra")) is
-              '(((#\$))
-                ((#\a)
-                 ((#\$))
-                 ((#\b) ((#\r) ((#\a) ((#\$)) ((#\c) ((#\a) ((#\d) ((#\a) ((#\b) ((#\r) ((#\a) ((#\$))))))))))))
-                 ((#\c) ((#\a) ((#\d) ((#\a) ((#\b) ((#\r) ((#\a) ((#\$)))))))))
-                 ((#\d) ((#\a) ((#\b) ((#\r) ((#\a) ((#\$))))))))
-                ((#\b) ((#\r) ((#\a) ((#\$)) ((#\c) ((#\a) ((#\d) ((#\a) ((#\b) ((#\r) ((#\a) ((#\$))))))))))))
-                ((#\c) ((#\a) ((#\d) ((#\a) ((#\b) ((#\r) ((#\a) ((#\$)))))))))
-                ((#\d) ((#\a) ((#\b) ((#\r) ((#\a) ((#\$)))))))
-                ((#\r) ((#\a) ((#\$)) ((#\c) ((#\a) ((#\d) ((#\a) ((#\b) ((#\r) ((#\a) ((#\$)))))))))))))
-  (check-part 'f (/ 1 6) (text->cst (string->list "hocus pocus preparatus")) is
-              '(((#\space #\p) ((#\o #\c #\u #\s #\space #\p #\r #\e #\p #\a #\r #\a #\t #\u #\s #\$)) ((#\r #\e #\p #\a #\r #\a #\t #\u #\s #\$)))
-                ((#\$))
-                ((#\a) ((#\r #\a #\t #\u #\s #\$)) ((#\t #\u #\s #\$)))
-                ((#\c #\u #\s #\space #\p)
-                 ((#\o #\c #\u #\s #\space #\p #\r #\e #\p #\a #\r #\a #\t #\u #\s #\$))
-                 ((#\r #\e #\p #\a #\r #\a #\t #\u #\s #\$)))
-                ((#\e #\p #\a #\r #\a #\t #\u #\s #\$))
-                ((#\h #\o #\c #\u #\s #\space #\p #\o #\c #\u #\s #\space #\p #\r #\e #\p #\a #\r #\a #\t #\u #\s #\$))
-                ((#\o #\c #\u #\s #\space #\p)
-                 ((#\o #\c #\u #\s #\space #\p #\r #\e #\p #\a #\r #\a #\t #\u #\s #\$))
-                 ((#\r #\e #\p #\a #\r #\a #\t #\u #\s #\$)))
-                ((#\p)
-                 ((#\a #\r #\a #\t #\u #\s #\$))
-                 ((#\o #\c #\u #\s #\space #\p #\r #\e #\p #\a #\r #\a #\t #\u #\s #\$))
-                 ((#\r #\e #\p #\a #\r #\a #\t #\u #\s #\$)))
-                ((#\r) ((#\a #\t #\u #\s #\$)) ((#\e #\p #\a #\r #\a #\t #\u #\s #\$)))
-                ((#\s)
-                 ((#\space #\p) ((#\o #\c #\u #\s #\space #\p #\r #\e #\p #\a #\r #\a #\t #\u #\s #\$)) ((#\r #\e #\p #\a #\r #\a #\t #\u #\s #\$)))
-                 ((#\$)))
-                ((#\t #\u #\s #\$))
-                ((#\u #\s)
-                 ((#\space #\p) ((#\o #\c #\u #\s #\space #\p #\r #\e #\p #\a #\r #\a #\t #\u #\s #\$)) ((#\r #\e #\p #\a #\r #\a #\t #\u #\s #\$)))
-                 ((#\$))))))
 
 (sumar)

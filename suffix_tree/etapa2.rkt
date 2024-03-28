@@ -135,7 +135,6 @@
 
 
 
-; TODO 6
 ; Această sarcină constă în implementarea a trei funcții:
 ; text->st, text->ast, text->cst, unde text->ast și text->cst
 ; trebuie obținute ca aplicații parțiale ale lui text->st.
@@ -160,23 +159,22 @@
 
 (define (text->st labeling-func)
   (lambda (text)
-    (let* ((text-with-end-marker (append text '(#\$)))  ; Add end marker as a character correctly
+    (let* ((text-with-end-marker (append text '(#\$)))  ; add end marker as a character
            (suffixes (get-suffixes text-with-end-marker))
-           (alphabet (sort (remove-duplicates text-with-end-marker) char<?)))  ; Sort and remove duplicates
-      (suffixes->st labeling-func suffixes alphabet))))
+           (alphabet (sort (remove-duplicates text-with-end-marker) char<?)))  ; sort and remove duplicates
+      (suffixes->st labeling-func suffixes alphabet)
+    )
+  )
+)
 
 ; b) Din funcția text->st derivați funcția text->ast care
 ; primește un text (listă de caractere) și întoarce AST-ul
 ; asociat textului.
-; (define text->ast
-;   'your-code-here)
 (define text->ast (text->st ast-func))
 
 
 ; c) Din funcția text->st derivați funcția text->cst care
 ; primește un text (listă de caractere) și întoarce CST-ul
 ; asociat textului.
-; (define text->cst
-;   'your-code-here)
 (define text->cst (text->st cst-func))
 
