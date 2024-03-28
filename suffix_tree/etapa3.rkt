@@ -35,7 +35,6 @@
 
 
 
-; TODO 2
 ; Implementați funcția longest-common-substring care primește
 ; două texte și determină cel mai lung subșir comun al
 ; acestora, folosind algoritmul următor:
@@ -53,17 +52,17 @@
 ; Hint: Revizitați funcția match-pattern-with-label (etapa 1).
 
 (define (longest-common-substring text1 text2)
-  (let* ((st1 (text->cst (string->list (string-append (list->string text1) "$"))))  ; Construiește CST pentru text1 cu marcator de sfârșit.
-         (suffixes (sort (get-suffixes (string->list (list->string text2)))  ; Generează și sortează sufixele text2.
-                         (lambda (a b) (> (length a) (length b))))))  ; Sortare descrescătoare după lungime.
-    (let loop ((suffixes suffixes) (longest '()))  ; Named let pentru iterare.
+  (let* ((st1 (text->cst (string->list (string-append (list->string text1) "$"))))  ; create a CST for text1
+         (suffixes (sort (get-suffixes (string->list (list->string text2)))  ; generate and sort the suffixes of text2
+                         (lambda (a b) (> (length a) (length b))))))  ; sort descending by length
+    (let iter ((suffixes suffixes) (longest '()))  ; named let for iteration
       (if (null? suffixes)
-          longest  ; Returnează cel mai lung subșir comun găsit.
+          longest  ; return the longest common substring
           (let* ((suffix (car suffixes))
-                 (match (find-match st1 suffix '())))  ; Caută potrivirea pentru sufix în CST.
+                 (match (find-match st1 suffix '())))  ; search the longest match in st1 for the current suffix
             (if (> (length match) (length longest))
-                (loop (cdr suffixes) match)  ; Actualizează cel mai lung subșir comun dacă este cazul.
-                (loop (cdr suffixes) longest)))))))  ; Continuă căutarea cu următorul sufix.
+                (iter (cdr suffixes) match)  ; update the longest substring if necesary
+                (iter (cdr suffixes) longest)))))))  ; continue searching for a longer substring
 
 
 (define (find-match st suffix accumulated)
@@ -99,5 +98,27 @@
 ; prefix comun pentru două sau mai multe sufixe ale textului.
 ; Folosiți interfața definită în fișierul suffix-tree
 ; atunci când manipulați arborele.
+
 (define (repeated-substring-of-given-length text len)
-  'your-code-here)
+  (let* ((cst (text->cst (append text '(#\$))))  ; Build the compact suffix tree for the text
+         (dfs-result #f))  ; Variable to store DFS result, initially false
+    (letrec ((dfs (lambda (node path)  ; Recursive function definition
+                    (if (and (not (null? node))  ; If the node is not empty
+                             (>= (length path) len))  ; And the path length is at least len
+                        (begin
+                          (set! dfs-result (take path len))  ; Update result and terminate
+                          dfs-result)
+                        (let loop ((branches (if (null? node) '() (other-branches node))))
+                          (unless (or dfs-result (null? branches))  ; Continue if not found
+                            (let* ((branch (car branches))  ; Get the current branch
+                                   (label (get-branch-label branch))  ; Get the label of the branch
+                                   (subtree (get-branch-subtree branch)))  ; Get the subtree
+                              (dfs subtree (append path label))  ; Recursive DFS call
+                              (loop (cdr branches)))))))))  ; Continue with the next branch
+      (dfs cst '()))  ; Initial call to dfs
+    dfs-result))  ; Return the final result
+
+
+
+
+
