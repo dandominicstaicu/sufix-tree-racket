@@ -31,8 +31,9 @@
 (define (substring? text pattern)
   (let* ((text-with-end-marker (append text '(#\$)))  ; text ends with a unique marker
          (suffix-tree (text->cst text-with-end-marker)))  ; construct the compact suffix tree for the text
-    (st-has-pattern? suffix-tree pattern)))  ; use st-has-pattern? to check if the pattern exists in the suffix tree
-
+    (st-has-pattern? suffix-tree pattern)  ; use st-has-pattern? to check if the pattern exists in the suffix tree
+    )
+  )
 
 
 ; Implementați funcția longest-common-substring care primește
@@ -50,11 +51,11 @@
 ; marcajul de final $ pentru a nu crește artificial lungimea 
 ; șirului comun cu acest caracter.
 ; Hint: Revizitați funcția match-pattern-with-label (etapa 1).
-
 (define (longest-common-substring text1 text2)
   (let* ((st1 (text->cst (string->list (string-append (list->string text1) "$"))))  ; create a CST for text1
          (suffixes (sort (get-suffixes (string->list (list->string text2)))  ; generate and sort the suffixes of text2
                          (lambda (a b) (> (length a) (length b))))))  ; sort descending by length
+    
     (let iter ((suffixes suffixes) (longest '()))  ; named let for iteration
       (if (null? suffixes)
           longest  ; return the longest common substring
@@ -62,27 +63,38 @@
                  (match (find-match st1 suffix '())))  ; search the longest match in st1 for the current suffix
             (if (> (length match) (length longest))
                 (iter (cdr suffixes) match)  ; update the longest substring if necesary
-                (iter (cdr suffixes) longest)))))))  ; continue searching for a longer substring
+                (iter (cdr suffixes) longest)  ; continue searching for a longer substring
+                )
+            )
+          )
+      )
+    )
+  ) 
 
 
 (define (find-match st suffix accumulated)
-  (if (null? suffix)  ; Dacă sufixul curent a fost complet consumat.
+  (if (null? suffix)  ; if the current suffix is empty
       accumulated
-      (let* ((branch (get-ch-branch st (car suffix))))  ; Caută ramura care începe cu primul caracter al sufixului.
-        (if branch  ; Dacă există o astfel de ramură
-            (let* ((label (get-branch-label branch))  ; Obține eticheta ramurii
-                   (subtree (get-branch-subtree branch))  ; Obține subarborele de sub ramura respectivă
-                   (match-length (common-prefix-length suffix label)))  ; Calculează lungimea prefixului comun
-              (if (= match-length 0)  ; Dacă nu există un prefix comun
-                  (reverse accumulated)  ; Returnează ceea ce s-a acumulat până acum
-                  (find-match subtree  ; Continuă căutarea în subarbore
-                               (drop suffix match-length)  ; Elimină prefixul comun din sufix
-                               (append accumulated (take label match-length)))))  ; Adaugă prefixul comun la acumulat
-            accumulated))))  ; Dacă nu există ramură, returnează acumulatul
+      (let* ((branch (get-ch-branch st (car suffix))))  ; search a branch that starts with the 1st char of the suffix
+        (if branch  ; if a branch exists
+            (let* ((label (get-branch-label branch))  ; get the label of the branch
+                   (subtree (get-branch-subtree branch))  ; get the subtree from that branch
+                   (match-length (common-prefix-length suffix label)))  ; calculate the length of the common prefix
+              (if (= match-length 0)  ; if no common prefix exists
+                  (reverse accumulated)  ; return what accumulated so far
+                  (find-match subtree  ; continue searching in the tree
+                              (drop suffix match-length)  ; remove the common prefix from the suffix
+                              (append accumulated (take label match-length))) ; add the prefix to the accum
+                  )
+              )  
+            accumulated ; if no branch left, return the accumulated result
+            )
+        )
+      )
+  )  
 
 
 
-; TODO 3
 ; Implementați funcția repeated-substring-of-given-length
 ; care primește un text și un număr natural len și
 ; parcurge arborele de sufixe al textului până găsește un
@@ -98,27 +110,34 @@
 ; prefix comun pentru două sau mai multe sufixe ale textului.
 ; Folosiți interfața definită în fișierul suffix-tree
 ; atunci când manipulați arborele.
-
 (define (repeated-substring-of-given-length text len)
-  (let* ((cst (text->cst (append text '(#\$))))  ; Build the compact suffix tree for the text
-         (dfs-result #f))  ; Variable to store DFS result, initially false
-    (letrec ((dfs (lambda (node path)  ; Recursive function definition
-                    (if (and (not (null? node))  ; If the node is not empty
-                             (>= (length path) len))  ; And the path length is at least len
-                        (begin
-                          (set! dfs-result (take path len))  ; Update result and terminate
-                          dfs-result)
-                        (let loop ((branches (if (null? node) '() (other-branches node))))
-                          (unless (or dfs-result (null? branches))  ; Continue if not found
-                            (let* ((branch (car branches))  ; Get the current branch
-                                   (label (get-branch-label branch))  ; Get the label of the branch
-                                   (subtree (get-branch-subtree branch)))  ; Get the subtree
-                              (dfs subtree (append path label))  ; Recursive DFS call
-                              (loop (cdr branches)))))))))  ; Continue with the next branch
-      (dfs cst '()))  ; Initial call to dfs
-    dfs-result))  ; Return the final result
-
-
-
-
-
+  (define cst (text->cst (append text '(#\$)))) ; Convert text to a compact suffix tree
+  
+  ; helper function to search for the repeated substring
+  (define (search-for-substring node accumulated)
+    ; base case: if the node is empty, return false indicating no substring found
+    (if (null? node)
+        #f
+        (let* ((branch (first-branch node))  ; extract the first branch from the node
+               (label (car branch))  ; label of the branch
+               (subtree (cdr branch))  ; subtree under the branch
+               (new-accumulated (append accumulated label)) ; append label to the accumulated path
+               )
+          ; if the accumulated path has the requested length and there's a subtree to search into
+          (if (and (not (null? subtree)) (>= (length new-accumulated) len))
+              (take new-accumulated len)  ; return the substring if it meets the length requirement
+              (let ((next-result (search-for-substring subtree new-accumulated)))  ; search in the subtree
+                (if next-result
+                    next-result  ; if found in the subtree, return it
+                    (search-for-substring (other-branches node) accumulated)  ; else try the next branch
+                    )
+                )
+              )
+          )           
+        )
+                    
+    )
+  
+  ; start the recursive search with the CST and an empty path
+  (search-for-substring cst '())
+  )

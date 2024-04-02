@@ -12,19 +12,19 @@
 ; => '((#\w #\h) (#\y) (#\e #\n))
 ; Folosiți recursivitate pe coadă.
 (define (find-longest-common-prefix w1 w2 common)
-    (cond
-      [(or (null? w1) (null? w2) (not (char=? (car w1) (car w2))))
-       (list (reverse common) w1 w2)
-      ]
-      [else
-        (find-longest-common-prefix (cdr w1) (cdr w2) (cons (car w1) common))
-      ]
+  (cond
+    [(or (null? w1) (null? w2) (not (char=? (car w1) (car w2))))
+     (list (reverse common) w1 w2)
+     ]
+    [else
+     (find-longest-common-prefix (cdr w1) (cdr w2) (cons (car w1) common))
+     ]
     )
   )
 
 (define (longest-common-prefix w1 w2)
   (find-longest-common-prefix w1 w2 '())
-)
+  )
 
 
 ; Implementați recursiv o funcție care primește o listă nevidă 
@@ -40,12 +40,12 @@
         (let* ((prefix-pair (longest-common-prefix (car words) (cadr words)))
                (common-prefix (car prefix-pair)))
           (reduce-prefix (cons common-prefix (cddr words)))
+          )
         )
     )
-  )
 
   (reduce-prefix words)
-)
+  )
 
 
 
@@ -90,16 +90,16 @@
 ; Obs: deși exemplele folosesc stringuri pentru claritate, vă
 ; reamintim că în realitate lucrăm cu liste de caractere.
 (define (common-prefix-length lst1 lst2)
-    (define (helper l1 l2 count)
-      (if (or (null? l1)
-              (null? l2)
-              (not (char=? (car l1) (car l2)))) ; not match
-          count ; return the count of matching characters
-          (helper (cdr l1) (cdr l2) (+ 1 count))  ; continue with the rest of the lists
-      )
+  (define (helper l1 l2 count)
+    (if (or (null? l1)
+            (null? l2)
+            (not (char=? (car l1) (car l2)))) ; not match
+        count ; return the count of matching characters
+        (helper (cdr l1) (cdr l2) (+ 1 count))  ; continue with the rest of the lists
+        )
     )
 
-    (helper lst1 lst2 0)
+  (helper lst1 lst2 0)
   )
 
 (define (match-pattern-with-label st pattern)
@@ -118,12 +118,12 @@
                  (list label (drop pattern common-prefix-length) subtree))) ; partial match, need to search deeper
             (else
              (list #f (take pattern common-prefix-length)) ; partial or no match, return common prefix
+             )
             )
           )
         )
     )
   )
-)
 
 
 
@@ -142,6 +142,11 @@
            [(and (list? match-result) (eq? (first match-result) #f)) #f] ; does not match label
            [(list? match-result) 
             (search-in-subtree (third match-result) (second match-result))] ; partial match, continue in the subtree
-           [else #f]))]))
-  (search-in-subtree st pattern))
-  
+           [else #f]
+           )
+         )
+       ]
+      )
+    )
+  (search-in-subtree st pattern)
+  )
