@@ -165,8 +165,8 @@
 (define (is-stream-of st-res)
   (lambda (st)
     (if (equal? st-res (streamy->eager st)) true
-        "nu e bun; nu are etichetele corecte (îl poți vizualiza cu `streamy->eager`)")))
-        ; (streamy->eager st))))
+        ; "nu e bun; nu are etichetele corecte (îl poți vizualiza cu `streamy->eager`)")))
+        (streamy->eager st))))
 
 (when (andmap procedure? (list text->ast text->cst))
   (check-part 'a (/ 1 2) (text->ast (string->list "banana"))

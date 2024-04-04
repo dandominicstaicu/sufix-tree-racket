@@ -26,8 +26,6 @@
 ; uneltele necesare implementării operatorului corespunzător
 ; pentru tipul text (pentru că în etapa 2 ați implementat
 ; construcția arborelui de sufixe asociat unui text).
-; (define (substring? text pattern)
-;   'your-code-here)
 (define (substring? text pattern)
   (let* ((text-with-end-marker (append text '(#\$)))  ; text ends with a unique marker
          (suffix-tree (text->cst text-with-end-marker)))  ; construct the compact suffix tree for the text

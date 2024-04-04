@@ -66,17 +66,6 @@
       )
   )
 
-(define (collection-append col1 col2)
-  (define (append-helper s1 s2)
-    (if (collection-empty? s1)
-        s2
-        (collection-cons (collection-first s1) (append-helper (collection-rest s1) s2))))
-  (append-helper col1 col2))
-
-(define (collection->list col)
-  ;; Convert a stream to a list for stream-based collections
-  (stream->list col))
-
 (define (list->collection lst)
   (define (convert-list-to-stream lst)
     (if (null? lst)
@@ -84,13 +73,6 @@
         (stream-cons (car lst) (convert-list-to-stream (cdr lst)))))  ; Recursively construct the stream
   (convert-list-to-stream lst))
 
-;; Helper function to determine if a collection is a stream
-(define (collection-is-stream? col)
-  (stream? col))
-
-(define (collection-foldr f init-val col)
-  (if (collection-empty? col)
-      init-val
-      (f (collection-first col) 
-         (collection-foldr f init-val (collection-rest col)))))
-
+; Helper function to check if a collection is not empty
+(define (not-empty? coll)
+  (not (collection-empty? coll)))

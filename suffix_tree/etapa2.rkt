@@ -118,20 +118,21 @@
 (define (suffixes->st labeling-func suffixes alphabet)
   (if (null? alphabet)
       '()  ; If the alphabet is empty, return an empty list
-      (foldr (lambda (ch acc)  ; Use foldr to iterate over the alphabet and build the tree
-               (let* ((ch-suffixes (get-ch-words suffixes ch))  ; Get all suffixes starting with ch
-                      (label-and-suffixes (and (not (null? ch-suffixes))  ; Proceed if there are such suffixes
-                                             (labeling-func ch-suffixes))))  ; Apply labeling function
-                 (if label-and-suffixes  ; If labeling function returned a non-empty result
-                     (let* ((label (car label-and-suffixes))  ; Extract label
-                            (new-suffixes (cdr label-and-suffixes))  ; Extract new suffixes for subtree
-                            (subtree (if (null? new-suffixes)  ; If no new suffixes, subtree is empty
-                                         '()
-                                         (suffixes->st labeling-func new-suffixes alphabet))))  ; Recursive call for subtree
-                       (cons (cons label subtree) acc))  ; Add the branch to the accumulator
-                     acc)))  ; If no label-and-suffixes, just pass the accumulator unchanged
-             '()  ; Initial accumulator is an empty list
-             alphabet)))  ; Fold over the alphabet
+      (let* ((branches (map (lambda (ch)
+                              (let* ((ch-suffixes (get-ch-words suffixes ch))  ; Get all suffixes starting with ch
+                                     (label-and-suffixes (and (not (null? ch-suffixes))
+                                                              (labeling-func ch-suffixes))))  ; Apply labeling function
+                                (if label-and-suffixes
+                                    (let* ((label (car label-and-suffixes))  ; Extract label
+                                           (new-suffixes (cdr label-and-suffixes))  ; Extract new suffixes for subtree
+                                           (subtree (if (null? new-suffixes)
+                                                        '()
+                                                        (suffixes->st labeling-func new-suffixes alphabet))))  ; Recursive call for subtree
+                                      (cons label subtree))
+                                    '())))  ; Return an empty list if there's no label-and-suffixes
+                            alphabet)))
+        (filter (lambda (branch) (not (null? branch))) branches))))  ; Filter out empty branches
+
 
 
 

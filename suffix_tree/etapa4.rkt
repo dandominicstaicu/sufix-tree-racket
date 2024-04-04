@@ -1,4 +1,7 @@
 #lang racket
+
+; TODO watch this! https://youtu.be/quxwaX8Z3O8?si=-jJDBMusWNxp_a9q
+
 (require "suffix-tree-stream.rkt")
 (require "collection.rkt")
 
@@ -125,7 +128,6 @@
   )
 
 
-
 (define (st-has-pattern? st pattern)
   (define (search-in-subtree subtree pattern)
     (cond
@@ -152,10 +154,10 @@
 (define (get-suffixes text)
   (define (suffixes-helper remaining-text)
     (if (null? remaining-text)
-        (stream) ; Return an empty stream
-        (stream-cons remaining-text
-                     (suffixes-helper (cdr remaining-text))
-                     )
+        (empty-collection) ; Return an empty stream
+        (collection-cons remaining-text
+                         (suffixes-helper (cdr remaining-text))
+                         )
         )
     )
   (suffixes-helper text)
@@ -184,13 +186,18 @@
 (define (stream-longest-common-prefix suffix-stream)
   (if (collection-empty? suffix-stream)
       '() ; Return an empty list if the stream is empty
-      (let loop ((prefix (collection-first suffix-stream)) ; Initialize with the first suffix
+      (let loop ((pref (collection-first suffix-stream)) ; Initialize with the first suffix
                  (rest-suffixes (collection-rest suffix-stream)))
         (if (collection-empty? rest-suffixes)
-            prefix ; Return the accumulated prefix if there are no more suffixes
+            pref ; Return the accumulated prefix if there are no more suffixes
             (let* ((next-suffix (collection-first rest-suffixes))
-                   (new-prefix (car (longest-common-prefix prefix next-suffix)))) ; Compute LCP with the next suffix
-              (loop new-prefix (collection-rest rest-suffixes))))))) ; Recurse with the new prefix and the rest of the suffixes
+                   (new-prefix (car (longest-common-prefix pref next-suffix)))) ; Compute LCP with the next suffix 
+              (loop new-prefix (collection-rest rest-suffixes)) ; Recurse with the new prefix and the rest of the suffixes
+              )
+            )
+        )
+      )
+  )
 
 
 (define (cst-func suffixes)
@@ -199,30 +206,43 @@
          (new-suffixes (collection-map (lambda (suffix)
                                          (collection-drop suffix (length lcp))) ; Remove the LCP from each suffix
                                        suffixes)))
-    (cons label new-suffixes)))  ; Return the pair of the label and new suffixes as streams
+    (cons label new-suffixes) ; Return the pair of the label and new suffixes as streams
+    )
+  )
 
+
+(define (not-false? val)
+  (not (eq? val #f)))
 
 ; ; considerați că și parametrul alphabet este un flux
 ; ; (desigur, și suffixes este un flux, fiind o colecție
 ; ; de sufixe)
 (define (suffixes->st labeling-func suffixes alphabet)
   (if (collection-empty? alphabet)
-      (empty-collection)  ; If the alphabet is empty, return an empty list
-      (collection-foldr (lambda (ch acc)  ; Use foldr to iterate over the alphabet and build the tree
-                          (let* ((ch-suffixes (get-ch-words suffixes ch))  ; Get all suffixes starting with ch
-                                 (label-and-suffixes (and (not (collection-empty? ch-suffixes))  ; Proceed if there are such suffixes
-                                                          (labeling-func ch-suffixes))))  ; Apply labeling function
-                            (if label-and-suffixes  ; If labeling function returned a non-empty result
-                                (let* ((label (car label-and-suffixes))  ; Extract label
-                                       (new-suffixes (cdr label-and-suffixes))  ; Extract new suffixes for subtree
-                                       (subtree (if (collection-empty? new-suffixes)  ; If no new suffixes, subtree is empty
-                                                    (empty-collection)
-                                                    (suffixes->st labeling-func new-suffixes alphabet))))  ; Recursive call for subtree
-                                  (collection-cons (cons label subtree) acc))  ; Add the branch to the accumulator
-                                acc)))  ; If no label-and-suffixes, just pass the accumulator unchanged
-                        (empty-collection)   ; Initial accumulator is an empty list
-                        alphabet)))  ; Fold over the alphabet
-
+      empty-collection  ; If the alphabet is empty, return an empty stream
+      (let* ((branches (collection-map (lambda (ch)
+                                     (let* ((ch-suffixes (get-ch-words suffixes ch))  ; Lazily get all suffixes starting with ch
+                                            (label-and-suffixes (if (not (collection-empty? ch-suffixes))
+                                                                    (labeling-func ch-suffixes)
+                                                                    #f)))  ; Apply labeling function only if ch-suffixes is not empty
+                                       (if label-and-suffixes
+                                           (let* ((label (car label-and-suffixes))  ; Extract label
+                                                  (new-suffixes (cdr label-and-suffixes))  ; Extract new suffixes for subtree
+                                                  (subtree (if (collection-empty? new-suffixes)
+                                                               empty-collection
+                                                               (suffixes->st labeling-func new-suffixes alphabet)))  ; Recursive call for subtree
+                                                  )
+                                             (cons label subtree)  ; form a branch as a pair
+                                             )
+                                           #f ; Use #f to indicate failure or absence of a branch
+                                           ) 
+                                       )
+                                     )
+                                   alphabet)))
+        (collection-filter not-false? branches)  ; Filter out false values, keeping only valid branches
+        )
+      )
+  ) 
 
 
 ; nu uitați să convertiți alfabetul într-un flux
@@ -238,17 +258,54 @@
     )
   )
 
+
 (define text->ast (text->st ast-func))
 
 (define text->cst (text->st cst-func))
 
-; dacă ați respectat bariera de abstractizare,
-; această funcție va rămâne nemodificată.
+; ; dacă ați respectat bariera de abstractizare,
+; ; această funcție va rămâne nemodificată.
 (define (substring? text pattern)
-  'your-code-here)
+  (let* ((text-with-end-marker (append text '(#\$)))  ; text ends with a unique marker
+         (suffix-tree (text->ast text-with-end-marker)))  ; construct the compact suffix tree for the text
+    (st-has-pattern? suffix-tree pattern)  ; use st-has-pattern? to check if the pattern exists in the suffix tree
+    )
+  )
 
 
-; dacă ați respectat bariera de abstractizare,
-; această funcție va rămâne nemodificată.
+
+; ; dacă ați respectat bariera de abstractizare,
+; ; această funcție va rămâne nemodificată.
+; (define (repeated-substring-of-given-length text len)
+;   'code)
 (define (repeated-substring-of-given-length text len)
-  'your-code-here)
+  (define cst (text->cst (append text '(#\$)))) ; Convert text to a compact suffix tree
+  
+  ; helper function to search for the repeated substring
+  (define (search-for-substring node accumulated)
+    ; base case: if the node is empty, return false indicating no substring found
+    (if (null? node)
+        #f
+        (let* ((branch (first-branch node))  ; extract the first branch from the node
+               (label (car branch))  ; label of the branch
+               (subtree (cdr branch))  ; subtree under the branch
+               (new-accumulated (append accumulated label)) ; append label to the accumulated path
+               )
+          ; if the accumulated path has the requested length and there's a subtree to search into
+          (if (and (not (null? subtree)) (>= (length new-accumulated) len))
+              (take new-accumulated len)  ; return the substring if it meets the length requirement
+              (let ((next-result (search-for-substring subtree new-accumulated)))  ; search in the subtree
+                (if next-result
+                    next-result  ; if found in the subtree, return it
+                    (search-for-substring (other-branches node) accumulated)  ; else try the next branch
+                    )
+                )
+              )
+          )           
+        )
+                    
+    )
+  
+  ; start the recursive search with the CST and an empty path
+  (search-for-substring cst '())
+  )
