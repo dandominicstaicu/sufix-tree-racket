@@ -246,7 +246,6 @@
 
 
 ; nu uitați să convertiți alfabetul într-un flux
-#|
 (define (text->st labeling-func)
   (lambda (text)
     (let* [(text-with-end-marker (append text '(#\$)))  ; Add end marker as a character
@@ -258,17 +257,6 @@
       )
     )
   )
-|#
-
-; Correcting the approach for text->st
-(define (text->st labeling-func)
-  (lambda (text)
-    (let* [(text-with-end-marker (append text '(#\$)))  ; Correctly append end marker to list
-           (suffixes (get-suffixes text-with-end-marker))  ; Convert list to collection then get suffixes
-           (alphabet-list (sort (remove-duplicates text-with-end-marker) char<?))  ; Process list directly
-           (alphabet-stream (list->collection alphabet-list))]  ; Convert sorted alphabet list to a collection
-      (suffixes->st labeling-func suffixes alphabet-stream)
-    )))
 
 (define text->ast (text->st ast-func))
 
@@ -287,20 +275,18 @@
 
 ; ; dacă ați respectat bariera de abstractizare,
 ; ; această funcție va rămâne nemodificată.
-; (define (repeated-substring-of-given-length text len)
-;   'code)
-
-
 (define (repeated-substring-of-given-length text len)
   ; Convert text to a compact suffix tree, ensuring text is a list.
-  (define cst (text->cst (append text '(#\0)))) ; Assuming text is already a list, append works directly.
+  (define cst
+    (text->cst (append text '(#\$))) ; text is already a list so append works directly
+    ) 
 
   ; Helper function to search for the repeated substring within the tree.
   (define (search-for-substring node accumulated)
     (if (collection-empty? node) ; Check if there are no more branches to explore.
         #f
         (let* ((branch (collection-first node)) ; Assuming collection-first returns the first branch correctly.
-               (label (collection-to-list (get-branch-label branch))) ; Convert label from collection/stream to list.
+               (label (collection->list (get-branch-label branch))) ; Convert label from collection/stream to list.
                (subtree (get-branch-subtree branch))
                (new-accumulated (append accumulated label))) ; Use append on lists.
           (cond
@@ -310,45 +296,16 @@
             (else
              (let ((next-result (search-for-substring subtree new-accumulated)))
                (or next-result ; If a matching substring is found in the subtree,
-                   (search-for-substring (collection-rest node) accumulated)))))))) ; continue exploring the rest of the tree.
-
-  ; Converts the given collection or stream to a list to work with list operations like append.
-  (define (collection-to-list col)
-    (if (collection-empty? col)
-        '()
-        (cons (collection-first col) (collection-to-list (collection-rest col)))))
+                   (search-for-substring (collection-rest node) accumulated) ; continue exploring the rest of the tree.
+                   )
+               )
+             )
+            )
+          )
+        )
+    ) 
 
   ; Begin the search with the entire tree and an empty path.
-  (search-for-substring cst '()))
-
-
-
-
-#|
-(define (repeated-substring-of-given-length text len)
-  ; Correctly append end marker to list, then convert to collection for CST
-  (define cst (text->cst (list->collection (append text '(#\$)))))
-
-  ; Helper function to search for the repeated substring
-  (define (search-for-substring node accumulated)
-    ; Base case: if the node is empty, return false indicating no substring found
-    (if (collection-empty? node)
-        #f
-        (let* ((branch (first-branch node))  ; Extract the first branch from the node
-               (label (get-branch-label branch))  ; Label of the branch
-               (subtree (get-branch-subtree branch))  ; Subtree under the branch
-               (new-accumulated (append accumulated label)))  ; Append label to the accumulated path
-          ; Check if the accumulated path meets the length requirement and proceed
-          (if (and (not (collection-empty? subtree)) (>= (length new-accumulated) len))
-              (take new-accumulated len)  ; Return the list if it meets the length requirement
-              (let ((next-result (search-for-substring subtree new-accumulated)))  ; Search in the subtree
-                (if next-result
-                    next-result  ; If found in the subtree, return it
-                    (search-for-substring (other-branches node) accumulated)))))))  ; Else try the next branch
-
-  ; Start the recursive search with the CST and an empty path
   (search-for-substring cst '())
-
   )
-|#
 

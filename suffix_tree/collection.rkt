@@ -73,6 +73,13 @@
         (stream-cons (car lst) (convert-list-to-stream (cdr lst)))))  ; Recursively construct the stream
   (convert-list-to-stream lst))
 
+ ; Converts the given collection or stream to a list to work with list operations like append.
+  (define (collection->list col)
+    (if (collection-empty? col)
+        '()
+        (cons (collection-first col) (collection->list (collection-rest col)))))
+
+
 ; Helper function to check if a collection is not empty
 (define (not-empty? coll)
   (not (collection-empty? coll)))
