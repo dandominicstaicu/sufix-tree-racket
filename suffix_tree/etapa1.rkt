@@ -32,7 +32,6 @@
 ; mai lung prefix comun al acestora.
 ; Opriți căutarea (parcurgerea) în momentul în care aveți garanția 
 ; că prefixul comun curent este prefixul comun final.
-
 (define (longest-common-prefix-of-list words)
   (define (reduce-prefix words)
     (if (or (null? words) (null? (cdr words)))
